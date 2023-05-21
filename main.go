@@ -30,6 +30,6 @@ func main() {
 		}
 	}()
 
-	myWindow.Resize(fyne.NewSize(400, 400))
+	myWindow.Resize(fyne.NewSize(float32(Grid.Width), float32(Grid.Height)))
 	myWindow.ShowAndRun()
 }
