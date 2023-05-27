@@ -7,9 +7,15 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"image/color"
+	"math/rand"
+	"time"
 )
 
-func main() {
+func mainYY() {
+	gridLayout()
+}
+
+func mainXX() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Real-Time Drawing")
 
@@ -26,10 +32,40 @@ func main() {
 		for {
 			canvas.Refresh() // Redraw the canvas
 			// Perform any necessary updates to the drawing here
-			updateImage()
+			updateImageTmp()
 		}
 	}()
 
 	myWindow.Resize(fyne.NewSize(float32(Grid.Width), float32(Grid.Height)))
+	myWindow.ShowAndRun()
+}
+
+func main() {
+	rand.Seed(time.Now().UnixNano())
+	game.init(4)
+
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Probability Tree")
+
+	content := gridLayoutContainer()
+
+	myWindow.SetContent(content)
+
+	// Start a goroutine to update the drawing continuously
+	go func() {
+		row := 0
+		col := game.startCol()
+		for {
+			row, col = nextMove(content, row, col)
+			content.Refresh()
+			time.Sleep(250 * time.Millisecond)
+			if row > game.NumRows {
+				row = 0
+				col = game.startCol()
+			}
+		}
+	}()
+
+	myWindow.Resize(fyne.NewSize(400, 400))
 	myWindow.ShowAndRun()
 }
