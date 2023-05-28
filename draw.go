@@ -8,58 +8,26 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"image/color"
 	"math/rand"
-	"time"
 )
 
-func updateImage() {
-	for row := 0; row < Grid.NumRows; row++ {
-		for col := 0; col < Grid.NumCols; col++ {
-			if col == Grid.NumCols/2 {
-				r := uint8(rand.Intn(0xFF))
-				g := uint8(rand.Intn(0xFF))
-				b := uint8(rand.Intn(0xFF))
-				colr := color.RGBA{R: r, G: g, B: b, A: 0xFF}
-				Grid.setTile(row, col, colr)
-			} else if col == Grid.NumCols/2+1 {
-			} else {
-				Grid.setTile(row, col, color.Black)
-				Grid.setTile(row, col, color.Black)
-			}
-		}
+func min(a, b int) int {
+	if a < b {
+		return a
 	}
-	time.Sleep(1000 * time.Millisecond)
+	return b
 }
 
-func updateImageTmp() {
-	for row := 0; row < Grid.NumRows; row++ {
-		for col := 0; col < Grid.NumCols; col++ {
-			if row%2 == 0 && col%2 == 0 {
-				r := uint8(rand.Intn(0xFF))
-				g := uint8(rand.Intn(0xFF))
-				b := uint8(rand.Intn(0xFF))
-				colr := color.RGBA{R: r, G: g, B: b, A: 0xFF}
-				Grid.setTile(row, col, colr)
-				//} else if col == Grid.NumCols/2+1 {
-				//	Grid.setTile(row, col, color.Black)
-			} else {
-				Grid.setTile(row, col, color.Black)
-			}
-		}
+func max(a, b int) int {
+	if a > b {
+		return a
 	}
-	time.Sleep(1000 * time.Millisecond)
-}
-
-func drawCircle(row, col int, color color.Color) {
-
-}
-func drawBigCircle(row, col int, color color.Color) {
-
+	return b
 }
 
 func gridLayoutContainer() *fyne.Container {
 
-	numCols := 9 // must be an odd number
-	numRows := (numCols + 1) / 2
+	numCols := game.NumCols
+	numRows := game.NumRows
 
 	tiles := make([]fyne.CanvasObject, 0)
 	gray := color.RGBA{R: 0x11, G: 0x11, B: 0x11, A: 0xFF}
@@ -79,7 +47,9 @@ func gridLayoutContainer() *fyne.Container {
 func nextMove(container *fyne.Container, row, col int) (newRow, newCol int) {
 	objNum := game.objectNum(row, col)
 	game.ObjectFreq[objNum]++
-	container.Objects[objNum] = canvas.NewCircle(color.White)
+	f := uint8(min(game.ObjectFreq[objNum]*2, 127))
+	colr := game.ColorGradient[f]
+	container.Objects[objNum] = canvas.NewCircle(colr)
 	row++
 	d := rand.Intn(2)
 	if d == 0 {

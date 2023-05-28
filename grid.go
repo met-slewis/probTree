@@ -1,22 +1,13 @@
 package main
 
-import (
-	"image/color"
-	"math/rand"
-	"time"
-)
-
-const (
-	gridNumRows = 10
-	tileWidth   = 10
-	tileHeight  = 10
-)
+import "image/color"
 
 type GameType struct {
-	NumCols    int
-	NumRows    int
-	NumObjects int
-	ObjectFreq map[int]int
+	NumCols       int
+	NumRows       int
+	NumObjects    int
+	ObjectFreq    map[int]int
+	ColorGradient []color.Color
 }
 
 var game GameType
@@ -29,64 +20,33 @@ func (g *GameType) init(rows int) {
 	for i := 0; i < g.NumObjects; i++ {
 		g.ObjectFreq[i] = 0
 	}
+	g.computeGradient(128)
 }
 
 func (g *GameType) startCol() int {
-	return (g.NumCols + 1) / 2
+	return ((g.NumCols - 1) / 2) + 1
 }
 
 func (g *GameType) objectNum(row, col int) int {
-	return (row * g.NumCols) + col
+	return (row * g.NumCols) + col - 1
 }
 
-type GridType struct {
-	Width, Height    int // pixels wide and high
-	NumRows, NumCols int // how many tiles - rows and columns
-	grid             [][]color.Color
-	triangle         map[int][]int
-}
+func (gme *GameType) computeGradient(numSteps int) {
+	blue := [3]int{0, 0, 255}
+	red := [3]int{255, 0, 0}
 
-var Grid GridType
+	gme.ColorGradient = make([]color.Color, 0)
 
-func Init() {
-	Grid.init(gridNumRows, tileWidth, tileHeight)
-	rand.Seed(time.Now().UnixNano())
-	for x := 0; x < Grid.Width; x++ {
-		for y := 0; y < Grid.Height; y++ {
-			xCol := uint8(0xff * x / Grid.Width)
-			yCol := uint8(0xff * y / Grid.Height)
-			col := color.RGBA{R: xCol, G: yCol, A: 0xFF}
-			Grid.grid[x][y] = col
-		}
-	}
-}
+	for step := 0; step < numSteps; step++ {
+		r := blue[0] + ((red[0]-blue[0])/(numSteps-1))*step
+		g := blue[1] + ((red[1]-blue[1])/(numSteps-1))*step
+		b := blue[2] + ((red[2]-blue[2])/(numSteps-1))*step
 
-func (gt *GridType) init(numRows, tileWidth, tileHeight int) {
-	gt.NumRows = numRows
-	gt.Height = numRows * tileHeight
-
-	gt.NumCols = numRows*2 + 1
-	gt.Width = gt.NumCols * tileWidth
-
-	gt.triangle = make(map[int][]int)
-	for r := 0; r < numRows; r++ {
-		for r1 := -1 * r; r1 <= r; r1 += 2 {
-			gt.triangle[r] = append(gt.triangle[r], r1)
-		}
-	}
-
-	gt.grid = make([][]color.Color, gt.Width)
-	for x := range gt.grid {
-		gt.grid[x] = make([]color.Color, gt.Height)
-	}
-}
-
-func (gt *GridType) setTile(row, col int, color color.Color) {
-	rowPixel := row * tileHeight
-	colPixel := col * tileWidth
-	for r := rowPixel; r < rowPixel+tileHeight; r++ {
-		for c := colPixel; c < colPixel+tileWidth; c++ {
-			gt.grid[c][r] = color
-		}
+		gme.ColorGradient = append(gme.ColorGradient, color.RGBA{
+			R: uint8(r),
+			G: uint8(g),
+			B: uint8(b),
+			A: 0xFF,
+		})
 	}
 }
